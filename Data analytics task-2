@@ -1,0 +1,105 @@
+# Step 1: Import Libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score
+
+# Step 2: Load Dataset
+df = pd.read_csv('your_dataset.csv')  # Replace with your dataset filename
+
+# Step 3: Basic Data Inspection
+print(df.head())
+print(df.info())
+
+# Step 4: Preprocessing
+# Replace 'target_column' with the name of the column you want to predict
+X = df.drop('target_column', axis=1)
+y = df['target_column']
+
+# Optional: Handle categorical data
+# X = pd.get_dummies(X)
+
+# Step 5: Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 6: Feature Scaling (optional for tree-based models like RandomForest)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Step 7: Model Training
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Step 8: Evaluation
+y_pred = model.predict(X_test_scaled)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
+# 📘 1. Import Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest, chi2, RFE
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+
+# 📂 2. Load Dataset
+df = pd.read_csv('your_dataset.csv')  # 🔁 Replace with your dataset
+print("Dataset shape:", df.shape)
+df.head()
+
+# 🧽 3. Data Preparation
+X = df.drop('target_column', axis=1)  # 🔁 Replace 'target_column'
+y = df['target_column']
+
+# Convert categorical variables if any
+X = pd.get_dummies(X)
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 📊 4. Feature Selection Techniques
+
+# 4.1 Univariate Selection (SelectKBest with Chi-Squared)
+k = 10  # 🔁 Select top k features
+selector_kbest = SelectKBest(score_func=chi2, k=k)
+X_kbest = selector_kbest.fit_transform(abs(X_train_scaled), y_train)  # Use abs() for chi2 with negatives
+selected_features_kbest = X.columns[selector_kbest.get_support()]
+
+print("Top", k, "features (SelectKBest):")
+print(selected_features_kbest)
+
+# 4.2 Recursive Feature Elimination (RFE)
+model = LogisticRegression(max_iter=1000)
+selector_rfe = RFE(model, n_features_to_select=k)
+selector_rfe.fit(X_train_scaled, y_train)
+selected_features_rfe = X.columns[selector_rfe.support_]
+
+print("\nTop", k, "features (RFE):")
+print(selected_features_rfe)
+
+# 🧠 5. Train Models with Selected Features
+def train_and_evaluate(X_train_sel, X_test_sel, method_name):
+    clf = RandomForestClassifier(random_state=42)
+    clf.fit(X_train_sel, y_train)
+    y_pred = clf.predict(X_test_sel)
+    acc = accuracy_score(y_test, y_pred)
+    print(f"\nModel Accuracy ({method_name}): {acc:.4f}")
+    print(classification_report(y_test, y_pred))
+
+# Using SelectKBest features
+train_and_evaluate(X_train[selected_features_kbest], X_test[selected_features_kbest], "SelectKBest")
+
+# Using RFE features
+train_and_evaluate(X_train[selected_features_rfe], X_test[selected_features_rfe], "RFE")

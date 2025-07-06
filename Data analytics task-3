@@ -1,0 +1,39 @@
+Name: Profit Ratio
+Formula: [Profit] / [Sales]
+Name: Metric Selector
+Data type: String
+Allowable values: List
+Values:
+  - Sales
+  - Profit
+  - Quantity
+Name: Selected Metric
+Formula:
+CASE [Metric Selector]
+  WHEN "Sales" THEN [Sales]
+  WHEN "Profit" THEN [Profit]
+  WHEN "Quantity" THEN [Quantity]
+END
+Name: Profitability
+Formula:
+IF [Profit] > 0 THEN "Profitable"
+ELSE "Unprofitable"
+END
+Name: Profit Ratio
+Formula: [Profit] / [Sales]
+Name: Sales Performance
+Formula:
+IF [Sales] >= 100000 THEN "High"
+ELSEIF [Sales] >= 50000 THEN "Medium"
+ELSE "Low"
+END
+Name: Selected Metric
+Formula:
+CASE [Metric Selector]
+  WHEN "Sales" THEN [Sales]
+  WHEN "Profit" THEN [Profit]
+  WHEN "Quantity" THEN [Quantity]
+END
+Name: Negative Profit Flag
+Formula:
+IF [Profit] < 0 THEN "Check Profitability" ELSE "" END

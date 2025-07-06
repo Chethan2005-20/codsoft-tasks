@@ -1,0 +1,74 @@
+pip install pyspark
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("LargeDatasetAnalysis") \
+    .getOrCreate()
+
+df = spark.read.csv("large_dataset.csv", header=True, inferSchema=True)
+df.printSchema()
+# Example: Total sales by region
+agg_df = df.groupBy("Region").sum("Sales")
+agg_df.show()
+agg_df.write.csv("output/region_sales", header=True)
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, sum as _sum, avg
+
+# ------------------------
+# 1. Start Spark Session
+# ------------------------
+spark = SparkSession.builder \
+    .appName("BigDataProcessing") \
+    .config("spark.executor.memory", "2g") \
+    .config("spark.driver.memory", "2g") \
+    .getOrCreate()
+
+print("✅ Spark session started")
+
+# ------------------------
+# 2. Load Large Dataset
+# ------------------------
+# You can replace this with a real large file path
+input_path = "data/large_dataset.csv"
+
+df = spark.read.csv(input_path, header=True, inferSchema=True)
+print(f"📊 Dataset loaded with {df.count()} rows and {len(df.columns)} columns")
+
+df.printSchema()
+
+# ------------------------
+# 3. Basic Cleaning
+# ------------------------
+df_clean = df.dropna(subset=["Sales", "Region"])
+df_clean = df_clean.filter(col("Sales") > 0)
+
+# ------------------------
+# 4. Aggregation
+# ------------------------
+agg_df = df_clean.groupBy("Region") \
+    .agg(
+        _sum("Sales").alias("Total_Sales"),
+        avg("Sales").alias("Avg_Sales")
+    )
+
+print("🧮 Aggregated Data:")
+agg_df.show()
+
+# ------------------------
+# 5. Save Results
+# ------------------------
+output_path = "output/region_sales_summary"
+agg_df.coalesce(1).write.mode("overwrite").csv(output_path, header=True)
+print(f"📁 Aggregated data written to: {output_path}")
+
+# ------------------------
+# 6. Stop Spark
+# ------------------------
+spark.stop()
+print("✅ Spark session stopped")
+Region,Sales,Product,Date
+North,100,Widget,2025-01-01
+South,250,Widget,2025-01-01
+North,200,Widget,2025-01-02
+East,300,Gadget,2025-01-03
+...

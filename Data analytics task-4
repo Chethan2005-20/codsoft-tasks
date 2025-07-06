@@ -1,0 +1,123 @@
+reviews = [
+    "I absolutely love this product! It works like a charm.",
+    "This is the worst experience I've ever had.",
+    "It's okay, not great but not terrible either.",
+    "Fantastic quality and fast delivery.",
+    "Terrible service. Very disappointed."
+]
+pip install textblob
+python -m textblob.download_corpora
+from textblob import TextBlob
+
+for review in reviews:
+    blob = TextBlob(review)
+    polarity = blob.sentiment.polarity
+    sentiment = "Positive" if polarity > 0 else "Negative" if polarity < 0 else "Neutral"
+    print(f"Review: {review}\nSentiment: {sentiment} (Polarity: {polarity})\n")
+from transformers import pipeline
+
+# Load sentiment pipeline
+classifier = pipeline("sentiment-analysis")
+
+# Run sentiment analysis
+for review in reviews:
+    result = classifier(review)[0]
+    print(f"Review: {review}\nSentiment: {result['label']} (Score: {result['score']:.2f})\n") 
+import matplotlib.pyplot as plt
+from textblob import TextBlob
+
+labels = ['Positive', 'Negative', 'Neutral']
+counts = [0, 0, 0]
+
+for review in reviews:
+    polarity = TextBlob(review).sentiment.polarity
+    if polarity > 0:
+        counts[0] += 1
+    elif polarity < 0:
+        counts[1] += 1
+    else:
+        counts[2] += 1
+
+plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=90)
+plt.title("Sentiment Distribution")
+plt.show()
+# 📦 Install required packages (only once)
+# !pip install textblob transformers matplotlib pandas
+
+import pandas as pd
+import re
+from textblob import TextBlob
+import matplotlib.pyplot as plt
+
+# Optional: for advanced sentiment analysis
+from transformers import pipeline
+
+# ------------------------------
+# 1. Load Data (Sample Reviews)
+# ------------------------------
+
+reviews = [
+    "I absolutely love this product! It works like a charm.",
+    "This is the worst experience I've ever had.",
+    "It's okay, not great but not terrible either.",
+    "Fantastic quality and fast delivery.",
+    "Terrible service. Very disappointed."
+]
+
+df = pd.DataFrame(reviews, columns=["review"])
+print("📄 Original Data:\n", df)
+
+# ------------------------------
+# 2. Preprocess the Text
+# ------------------------------
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    return text
+
+df['cleaned_review'] = df['review'].apply(clean_text)
+
+# ------------------------------
+# 3. Sentiment Analysis with TextBlob
+# ------------------------------
+
+def get_sentiment(text):
+    polarity = TextBlob(text).sentiment.polarity
+    if polarity > 0:
+        return 'Positive'
+    elif polarity < 0:
+        return 'Negative'
+    else:
+        return 'Neutral'
+
+df['textblob_sentiment'] = df['cleaned_review'].apply(get_sentiment)
+
+# ------------------------------
+# 4. Visualize TextBlob Results
+# ------------------------------
+
+sentiment_counts = df['textblob_sentiment'].value_counts()
+sentiment_counts.plot(kind='bar', color=['green', 'red', 'gray'])
+plt.title('TextBlob Sentiment Distribution')
+plt.xlabel('Sentiment')
+plt.ylabel('Count')
+plt.grid(True)
+plt.show()
+
+# ------------------------------
+# 5. Sentiment Analysis with Transformers (Optional, Advanced)
+# ------------------------------
+
+try:
+    classifier = pipeline("sentiment-analysis")
+    df['transformer_sentiment'] = df['review'].apply(lambda x: classifier(x)[0]['label'])
+except:
+    print("⚠️ Transformers model not available or internet is off.")
+
+# ------------------------------
+# 6. Display Results
+# ------------------------------
+
+print("\n🔍 Final Results:\n")
+print(df[['review', 'textblob_sentiment', 'transformer_sentiment' if 'transformer_sentiment' in df else 'cleaned_review']])
